@@ -16,5 +16,20 @@
   },
   "alexnet.ipynb": {
     "alexnet.html": "8e4bf022"
+  },
+  "pages/filters.qmd": {
+    "filters.html": "cb09b6a6"
+  },
+  "pages/about.qmd": {
+    "about.html": "44884850"
+  },
+  "pages/faces.qmd": {
+    "faces.html": "1496573c"
+  },
+  "pages/linreg.qmd": {
+    "linreg.html": "9220c9df"
+  },
+  "404.qmd": {
+    "404.html": "89d1bccb"
   }
 }

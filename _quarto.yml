@@ -1,28 +1,40 @@
 project:
   type: website
+  output-dir: docs
 
 website:
-  title: "Michael Tran"
-  sidebar:
-    style: "docked"
+  title: "Website thing"
+  navbar:
+    background: primary
     search: true
+    left:
+      - text: "Home"
+        file: index.qmd
+  sidebar:
+    style: "floating"
+    search: true
+    tools:
+      - icon: github
+        menu:
+          - text: Source Code
+            url:  https://github.com/mtran-code/informatics-site
     contents:
       - index.qmd
-      - about.qmd
+      - pages/about.qmd
       - section: "AI Projects in R"
         contents:
-          - linreg.qmd
-          - faces.qmd
-          - filters.qmd
-      - sectiion: "RNA-Seq Analysis"
+          - pages/linreg.qmd
+          - pages/faces.qmd
+          - pages/filters.qmd
+      - section: "RNA-Seq Analysis"
         contents:
           - setup.qmd
+  page-footer: "Michael Tran" 
 
 format:
   html:
-    theme: cosmo
-    css: styles.css
+    theme:
+      light: flatly
+      dark: darkly
+    css: css/styles.css
     toc: true
-
-
-

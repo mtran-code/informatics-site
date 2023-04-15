@@ -1,0 +1,570 @@
+---
+title: "Regression"
+---
+
+# Linear and Polynomial Regression
+
+A
+```{r}
+# setup libraries
+library(ggplot2)
+
+# read in first dataset into dataframe
+x_tr <- read.delim(
+    file = "../data/train-test/xtr.dat",
+    col.names = "x_tr",
+    colClasses = c("numeric")
+)
+y_tr <- read.delim(
+    file = "../data/train-test/ytr.dat",
+    col.names = "y_tr",
+    colClasses = c("numeric")
+)
+
+df_tr <- data.frame(x_tr, y_tr)
+
+# read in second dataset into dataframe
+x_te <- read.delim(
+    file = "../data/train-test/xte.dat",
+    col.names = "x_te",
+    colClasses = c("numeric")
+)
+y_te <- read.delim(
+    file = "../data/train-test/yte.dat",
+    col.names = "y_te",
+    colClasses = c("numeric")
+)
+
+df_te <- data.frame(x_te, y_te)
+
+# plot training dataset
+plt_tr <- ggplot(
+    data = df_tr,
+    mapping = aes(x = x_tr, y = y_tr)
+) +
+    geom_point() +
+    xlim(0, 4) +
+    ylim(0, 30) +
+    ggtitle("Training data") +
+    theme_light()
+
+plt_tr
+
+# plot test dataset
+plt_te <- ggplot(
+    data = df_te,
+    mapping = aes(x = x_te, y = y_te)
+) +
+    geom_point() +
+    xlim(0, 4) +
+    ylim(0, 30) +
+    ggtitle("Testing data") +
+    theme_light()
+
+plt_te
+```
+
+B
+```{r}
+# convert training outputs to matrix
+y_tr_mat <- as.matrix(y_tr)
+
+# add column of 1s to training features
+x_tr_1 <- cbind(x_tr, b = rep(1, length(x_tr)))
+x_tr_1 <- as.matrix(x_tr_1)
+
+# solve for weight vector using training features
+w <- solve(t(x_tr_1) %*% x_tr_1) %*% (t(x_tr_1) %*% y_tr_mat)
+
+# plot linear regression on training set
+plt_tr_1 <- ggplot(data = df_tr, mapping = aes(x = x_tr, y = y_tr)) +
+    geom_point() +
+    stat_function(fun = function(x) {
+        w[1] * x + w[2]
+    }) +
+    xlim(0, 4) +
+    ylim(0, 30) +
+    theme_light()
+plt_tr_1
+
+# compute average training error
+eq_tr_1 <- t(as.data.frame(t(w) %*% t(x_tr_1)))
+errors_tr_1 <- (eq_tr_1 - y_tr_mat)**2
+err_avg_tr_1 <- colSums(errors_tr_1) / length(errors_tr_1)
+err_avg_tr_1
+```
+The average error of the training set using the linear regression model is 2.287073.
+
+C
+```{r}
+# convert training outputs to matrix
+y_te_mat <- as.matrix(y_te)
+
+# add column of 1s to testing features
+x_te_1 <- cbind(x_te, b = rep(1, length(x_te)))
+x_te_1 <- as.matrix(x_te_1)
+
+# plot linear regression on test set
+plt_te_1 <- ggplot(data = df_te, mapping = aes(x = x_te, y = y_te)) +
+    geom_point() +
+    stat_function(fun = function(x) {
+        w[1] * x + w[2]
+    }) +
+    xlim(0, 4) +
+    ylim(0, 30) +
+    theme_light()
+plt_te_1
+
+
+# compute average test error using same weight vector from training data
+eq_te_1 <- t(as.data.frame(t(w) %*% t(x_te_1)))
+errors_te_1 <- (eq_te_1 - y_te_mat)**2
+err_avg_te_1 <- colSums(errors_te_1) / length(errors_te_1)
+err_avg_te_1
+
+# store average errors:
+errs <- data.frame(
+    "training" = err_avg_tr_1,
+    "testing" = err_avg_te_1,
+    row.names = "order1"
+)
+```
+The average error of the testing set using the linear regression model is 9.427358.
+
+D
+```{r}
+# add second order polynomial to features
+x_tr_2 <- as.matrix(x_tr_1[, 1]**2)
+x_tr_2 <- cbind(x_tr_2, x_tr_1)
+
+# compute weight vector
+w2 <- solve(t(x_tr_2) %*% x_tr_2) %*% (t(x_tr_2) %*% y_tr_mat)
+
+# plot polynomial regression on training set
+plt_tr_2 <- ggplot(df_tr, aes(x = x_tr, y = y_tr)) +
+    geom_point() +
+    stat_function(fun = function(x) {
+        (w2[1] * x^2) + (w2[2] * x) + w2[3]
+    }) +
+    xlim(0, 4) +
+    ylim(0, 30) +
+    theme_light()
+plt_tr_2
+
+# compute average training error
+eq_tr_2 <- t(as.data.frame(t(w2) %*% t(x_tr_2)))
+errors_tr_2 <- (eq_tr_2 - y_tr_mat)**2
+err_avg_tr_2 <- colSums(errors_tr_2) / length(errors_tr_2)
+err_avg_tr_2
+
+# add columns to testing features
+x_te_2 <- as.matrix(x_te_1[, 1]**2)
+x_te_2 <- cbind(x_te_2, x_te_1)
+
+# plot polynomial regression on test set
+plt_te_2 <- ggplot(data = df_te, mapping = aes(x = x_te, y = y_te)) +
+    geom_point() +
+    stat_function(fun = function(x) {
+        (w2[1] * x^2) + (w2[2] * x) + w2[3]
+    }) +
+    xlim(0, 4) +
+    ylim(0, 30) +
+    theme_light()
+plt_te_2
+
+# compute average testing error using same weight vector from training data
+eq_te_2 <- t(as.data.frame(t(w2) %*% t(x_te_2)))
+errors_te_2 <- (eq_te_2 - y_te_mat)**2
+err_avg_te_2 <- colSums(errors_te_2) / length(errors_te_2)
+err_avg_te_2
+
+# store average errors
+errs <- rbind(errs, order2 = c(err_avg_tr_2, err_avg_te_2))
+errs
+```
+Comparing the training error and test error, this second order polynomial regression model performs worse than the linear model, with a better training fit but a worse testing fit. Thus, the linear regression model is a better fit.
+
+
+E
+```{r}
+# add third order polynomial to features
+x_tr_3 <- as.matrix(x_tr_1[, 1]**3)
+x_tr_3 <- cbind(x_tr_3, x_tr_2)
+
+# compute weight vector
+w3 <- solve(t(x_tr_3) %*% x_tr_3) %*% (t(x_tr_3) %*% y_tr_mat)
+
+# plot polynomial regression on training set
+plt_tr_3 <- ggplot(df_tr, aes(x = x_tr, y = y_tr)) +
+    geom_point() +
+    stat_function(fun = function(x) {
+        (w3[1] * x^3) + (w3[2] * x^2) + (w3[3] * x) + w3[4]
+    }) +
+    xlim(0, 4) +
+    ylim(0, 30) +
+    theme_light()
+plt_tr_3
+
+# compute average training error
+eq_tr_3 <- t(as.data.frame(t(w3) %*% t(x_tr_3)))
+errors_tr_3 <- (eq_tr_3 - y_tr_mat)**2
+err_avg_tr_3 <- colSums(errors_tr_3) / length(errors_tr_3)
+err_avg_tr_3
+
+# add columns to testing features
+x_te_3 <- as.matrix(x_te_1[, 1]**3)
+x_te_3 <- cbind(x_te_3, x_te_2)
+
+# plot polynomial regression on test set
+plt_te_3 <- ggplot(data = df_te, mapping = aes(x = x_te, y = y_te)) +
+    geom_point() +
+    stat_function(fun = function(x) {
+        (w3[1] * x^3) + (w3[2] * x^2) + (w3[3] * x) + w3[4]
+    }) +
+    xlim(0, 4) +
+    ylim(0, 30) +
+    theme_light()
+plt_te_3
+
+# compute average testing error using same weight vector from training data
+eq_te_3 <- t(as.data.frame(t(w3) %*% t(x_te_3)))
+errors_te_3 <- (eq_te_3 - y_te_mat)**2
+err_avg_te_3 <- colSums(errors_te_3) / length(errors_te_3)
+err_avg_te_3
+
+# store average errors
+errs <- rbind(errs, order3 = c(err_avg_tr_3, err_avg_te_3))
+errs
+```
+This time, the training error has improved much more than with the second order model. In addition, the testing error has also dramatically improved, even better than our original best linear regression model. Overall, this third order polynomial regression is a better fit than both the linear and second order models.
+
+F
+```{r}
+# add fourth order polynomial to features
+x_tr_4 <- as.matrix(x_tr_1[, 1]**4)
+x_tr_4 <- cbind(x_tr_4, x_tr_3)
+
+# compute weight vector
+w4 <- solve(t(x_tr_4) %*% x_tr_4) %*% (t(x_tr_4) %*% y_tr_mat)
+eq_tr_4 <- t(as.data.frame(t(w4) %*% t(x_tr_4)))
+
+# plot polynomial regression on training set
+plt_tr_4 <- ggplot(df_tr, aes(x = x_tr, y = y_tr)) +
+    geom_point() +
+    stat_function(fun = function(x) {
+        (w4[1] * x^4) + (w4[2] * x^3) + (w4[3] * x^2) + (w4[4] * x) + w4[5]
+    }) +
+    xlim(0, 4) +
+    ylim(0, 30) +
+    theme_light()
+plt_tr_4
+
+# compute average training error
+errors_tr_4 <- (eq_tr_4 - y_tr_mat)**2
+err_avg_tr_4 <- colSums(errors_tr_4) / length(errors_tr_4)
+err_avg_tr_4
+
+# add columns to testing features
+x_te_4 <- as.matrix(x_te_1[, 1]**4)
+x_te_4 <- cbind(x_te_4, x_te_3)
+
+# equation using same weight vector from training data
+eq_te_4 <- t(as.data.frame(t(w4) %*% t(x_te_4)))
+
+# plot polynomial regression on test set
+plt_te_4 <- ggplot(data = df_te, mapping = aes(x = x_te, y = y_te)) +
+    geom_point() +
+    stat_function(fun = function(x) {
+        (w4[1] * x^4) + (w4[2] * x^3) + (w4[3] * x^2) + (w4[4] * x) + w4[5]
+    }) +
+    xlim(0, 4) +
+    ylim(0, 30) +
+    theme_light()
+plt_te_4
+
+# compute average testing error using same weight vector from training data
+errors_te_4 <- (eq_te_4 - y_te_mat)**2
+err_avg_te_4 <- colSums(errors_te_4) / length(errors_te_4)
+err_avg_te_4
+
+# store average errors
+errs <- rbind(errs, order4 = c(err_avg_tr_4, err_avg_te_4))
+errs
+```
+Using fourth order polynomial regression, our training error has slightly improved, however, the testing error has slightly gotten worse, by a larger amount. While it is close to the third order polynomial regression, overall the data has become slightly overfitted, and so the best model for fitting our data is the third order polynomial regression model.
+
+# Regularization and Cross-Validation
+
+A
+```{r}
+# create identity matrix with 0 at position (1, 1)
+i_hat <- diag(nrow(w4))
+i_hat[1, 1] <- 0
+
+# function calculating training error in terms of lambda
+l2_error_tr <- function(lambda) {
+    l <- 0.5 * norm(x_tr_4 %*% w4 - y_tr_mat)^2 +
+        lambda / 2 * t(w4) %*% i_hat %*% w4
+    return(l)
+}
+# function calculating testing error in terms of lambda
+l2_error_te <- function(lambda) {
+    l <- 0.5 * norm(x_te_4 %*% w4 - y_te_mat)^2 +
+        lambda / 2 * t(w4) %*% i_hat %*% w4
+    return(l)
+}
+
+# calculate values based on given lambdas
+lambdas <- c(0.01, 0.05, 0.1, 0.5, 1, 100, 10^6)
+l2_tr <- sapply(lambdas, l2_error_tr)
+l2_te <- sapply(lambdas, l2_error_te)
+
+# save to dataframe
+df_l2 <- data.frame(lambdas, l2_tr, l2_te)
+df_l2
+
+# plot data
+plt_reg <- ggplot() +
+    geom_point(
+        data = df_l2,
+        mapping = aes(x = lambdas, y = l2_tr, color = "training")
+    ) +
+    stat_function(fun = l2_error_tr, mapping = aes(color = "training")) +
+    geom_point(
+        data = df_l2,
+        mapping = aes(x = lambdas, y = l2_te, color = "testing"),
+    ) +
+    stat_function(fun = l2_error_te, mapping = aes(color = "testing")) +
+    scale_color_manual(
+        name = "Dataset",
+        values = c(
+            training = "red",
+            testing = "blue"
+        ),
+    ) +
+    scale_x_log10() +
+    scale_y_log10() +
+    xlab("log10 lambda") +
+    ylab("log10 error") +
+    theme_light()
+plt_reg
+```
+The smallest lambda value, 0.01, seems to minimize the l2-normalized loss for both the training and testing data with the minimized lambda value. At smaller lambda values, the testing error is greater than the training data, but as they get larger this difference is less visible.
+
+B
+```{r}
+# function of training weight in terms of lambda
+l2_w_tr <- function(lambda) {
+    w <- solve(t(x_tr_4) %*% x_tr_4 + lambda * i_hat) %*% t(x_tr_4) %*% y_tr_mat
+    return(w)
+}
+# compute weights based on lambdas
+w_tr <- sapply(lambdas, l2_w_tr)
+
+# create dataframe to plot data
+cols <- c("lambdas", "x4.term", "x3.term", "x2.term", "x.term", "bias.term")
+df_w_tr <- data.frame(lambdas, t(w_tr))
+colnames(df_w_tr) <- cols
+
+# plot training weights
+plt_w_tr <- ggplot() +
+    geom_line(
+        data = df_w_tr,
+        mapping = aes(x = lambdas, y = x4.term, color = "x4")
+    ) +
+    geom_line(
+        data = df_w_tr,
+        mapping = aes(x = lambdas, y = x3.term, color = "x3")
+    ) +
+    geom_line(
+        data = df_w_tr,
+        mapping = aes(x = lambdas, y = x2.term, color = "x2")
+    ) +
+    geom_line(
+        data = df_w_tr,
+        mapping = aes(x = lambdas, y = x.term, color = "x")
+    ) +
+    geom_line(
+        data = df_w_tr,
+        mapping = aes(x = lambdas, y = bias.term, color = "bias")
+    ) +
+    scale_color_manual(
+        name = "weight parameter",
+        values = c(
+            x4 = "red",
+            x3 = "orange",
+            x2 = "purple",
+            x = "darkgreen",
+            bias = "blue"
+        ),
+    ) +
+    scale_x_log10() +
+    xlab("log10 lambda") +
+    ylab("weight parameter value") +
+    theme_light()
+plt_w_tr
+
+# function of testing weight in terms of lambda
+l2_w_te <- function(lambda) {
+    w <- solve(t(x_te_4) %*% x_te_4 + lambda * i_hat) %*% t(x_te_4) %*% y_te_mat
+    return(w)
+}
+
+# compute testing weights
+w_te <- sapply(lambdas, l2_w_te)
+
+# create dataframe to plot data
+df_w_te <- data.frame(lambdas, t(w_te))
+colnames(df_w_te) <- cols
+
+# plot testing weights in terms of lambda
+plt_w_te <- ggplot() +
+    # x4.term
+    geom_line(
+        data = df_w_te,
+        mapping = aes(x = lambdas, y = x4.term, color = "x4")
+    ) +
+    # x3.term
+    geom_line(
+        data = df_w_te,
+        mapping = aes(x = lambdas, y = x3.term, color = "x3")
+    ) +
+    # x2.term
+    geom_line(
+        data = df_w_te,
+        mapping = aes(x = lambdas, y = x2.term, color = "x2")
+    ) +
+    # x.term
+    geom_line(
+        data = df_w_te,
+        mapping = aes(x = lambdas, y = x.term, color = "x")
+    ) +
+    # bias.term
+    geom_line(
+        data = df_w_te,
+        mapping = aes(x = lambdas, y = bias.term, color = "bias")
+    ) +
+    scale_color_manual(
+        name = "weight parameter",
+        values = c(
+            x4 = "red",
+            x3 = "orange",
+            x2 = "purple",
+            x = "darkgreen",
+            bias = "blue"
+        ),
+    ) +
+    scale_x_log10() +
+    xlab("log10 lambda") +
+    ylab("weight parameter value") +
+    theme_light()
+plt_w_te
+```
+Note: Data is plotted as discrete based on specifed lambda values.
+
+C
+```{r}
+# store training data into single dataframe
+train <- data.frame(x_tr_4, y_tr_mat)
+# shuffle the rows randomly
+train <- train[sample(nrow(train)), ]
+# split the data into 5 equal groups of 8, in a list
+groups <- cut(seq_len(nrow(train)), breaks = 5, labels = FALSE)
+train_groups <- split(train, groups)
+train_groups
+
+# loop for each run
+for (run in 1:5) {
+    # designate datasets
+    validation_set <- train_groups[[run]]
+    training_set <- do.call(rbind, train_groups[-run])
+    x <- as.matrix(training_set[1:5])
+    y <- as.matrix(training_set[6])
+
+    # compute weight vector
+    w <- solve(t(x) %*% x) %*% (t(x) %*% y)
+
+    # create identity matrix with 0 at position (1, 1)
+    i_hat <- diag(nrow(w))
+    i_hat[1, 1] <- 0
+
+    # function calculating validation error in terms of lambda
+    l2_error <- function(lambda) {
+        l <- 0.5 * norm(
+            as.matrix(validation_set[1:5]) %*% w - as.matrix(validation_set[6])
+        )^2 + lambda / 2 * t(w) %*% i_hat %*% w
+        return(l)
+    }
+
+    # plot data
+    plt <- ggplot() +
+        stat_function(fun = l2_error) +
+        scale_x_log10() +
+        labs(
+            title = paste0("Run ", run),
+            x = "log10 lambda",
+            y = "error",
+        ) +
+        ylim(0, 2000) +
+        theme_light()
+    print(plt)
+}
+```
+We can see slight variation in each figure, but the trend remains the same: the error has a positive correlation with lambda, thus minimizing lambda seems to be the best fit for our data. This is the same trend seen previously.
+
+```{r}
+# plot 4th order polynomial regression on test set
+plt_te_4 <- ggplot(data = df_te, mapping = aes(x = x_te, y = y_te)) +
+    geom_point() +
+    stat_function(fun = function(x) {
+        (w4[1] * x^4) + (w4[2] * x^3) + (w4[3] * x^2) + (w4[4] * x) + w4[5]
+    }) +
+    xlim(0, 4) +
+    ylim(0, 30) +
+    theme_light()
+plt_te_4
+```
+The best fit 4th order polynomial regression plot.
+
+# Addition
+Response to Question 1d, in Refreshing Mathematics
+```{r}
+library(rgl)
+
+# Define A and B matrices
+A <- matrix(
+    c(
+        2, -2,
+        -2, 3
+    ),
+    nrow = 2
+)
+B <- matrix(
+    c(
+        2, -1,
+        -1, 2
+    ),
+    nrow = 2
+)
+
+# Define the function to plot
+f <- function(w) {
+    # Evaluate the function at each (x, y) point
+    return(sum(diag(B %*% w %*% t(w) %*% A)))
+}
+
+# Generate a grid of (x, y) points
+x <- seq(-1, 1, length.out = 50)
+y <- seq(-1, 1, length.out = 50)
+
+# Create a grid of (x, y) points
+grid <- expand.grid(x, y)
+
+# Evaluate the function at each (x, y) point
+z <- apply(grid, 1, function(w) f(as.matrix(w)))
+
+# Create the 3D plot
+z <- matrix(z, nrow = length(x), ncol = length(y), byrow = TRUE)
+persp3d(x, y, z, col = heat.colors(1000))
+
+```
