@@ -1,0 +1,28 @@
+project:
+  type: website
+
+website:
+  title: "Michael Tran"
+  sidebar:
+    style: "docked"
+    search: true
+    contents:
+      - index.qmd
+      - about.qmd
+      - section: "AI Projects in R"
+        contents:
+          - linreg.qmd
+          - faces.qmd
+          - filters.qmd
+      - sectiion: "RNA-Seq Analysis"
+        contents:
+          - setup.qmd
+
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc: true
+
+
+

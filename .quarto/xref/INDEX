@@ -1,0 +1,20 @@
+{
+  "index.qmd": {
+    "index.html": "d7d508e6"
+  },
+  "about.qmd": {
+    "about.html": "be79aecf"
+  },
+  "linreg.qmd": {
+    "linreg.html": "9aedd16c"
+  },
+  "faces.qmd": {
+    "faces.html": "58ae8f08"
+  },
+  "filters.qmd": {
+    "filters.html": "23842785"
+  },
+  "alexnet.ipynb": {
+    "alexnet.html": "8e4bf022"
+  }
+}
