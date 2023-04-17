@@ -3,7 +3,7 @@ project:
   output-dir: docs
 
 website:
-  title: "Website thing"
+  title: "Website for Informatics Projects"
   navbar:
     background: primary
     search: true
