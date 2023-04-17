@@ -1,4 +1,5 @@
 # informatics-site
+link: https://mtran-code.github.io/informatics-site/
 
 - host interesting informatics projects
 - experiment and learn quarto
