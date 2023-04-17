@@ -1,70 +1,194 @@
 ---
 title: "Regression"
+code-annotations: hover
+engine: knitr
 ---
 
-# Linear and Polynomial Regression
+# Overview
 
-A
+In this exercise, I will be implementing linear and polynomial regression in R using a pre-made training and testing data set. I try to make this exercise as simple as possible, so I will not be going into the mathematical details of linear and polynomial regression. I will also provide explanations for as many lines of code as possible, so that you can follow along with the code and understand what is going on.
+
+# Loading data
+
+I am working with a relatively small and simple dataset of random datapoints. The data is comprised of a total of 60 datapoints; 40 of which belong to the training set, and 20 of which belong to the testing set. When working in regression problems or other problems involving a training and test set, it is generally advised that you split your data into a ratio of 70-80% training set, and 20-30% testing set; however, for the purposes of this exercise, I will be using a 2/1 ratio. The data is just a simple x and y coordinate, and the goal is to find a line of best fit for the data. In the context of machine learning applications, your x and y coordinates would represent your features and labels, respectively.
+
+You can see an overview of the dataset I am working with here:
+
+:::{.callout-note title="Training Set" collapse="true" icon="false"}
+| X             | Y             |
+| ------------- | ------------- |
+| 8.0880917e-01 | 1.0073261e+01 |
+| 3.1381904e+00 | 1.5289011e+01 |
+| 3.4421490e+00 | 1.9023864e+01 |
+| 1.3083408e+00 | 9.3499676e+00 |
+| 9.9544190e-01 | 1.0105849e+01 |
+| 3.2414549e+00 | 1.4950901e+01 |
+| 2.8537392e+00 | 1.2890953e+01 |
+| 2.6453137e+00 | 1.1362217e+01 |
+| 2.8419650e+00 | 1.3414665e+01 |
+| 4.5160350e-01 | 7.3284401e+00 |
+| 3.4798880e+00 | 1.7327588e+01 |
+| 1.9057113e+00 | 1.0604819e+01 |
+| 3.2108352e-01 | 5.4250626e+00 |
+| 5.9508185e-01 | 7.9049958e+00 |
+| 1.2960970e+00 | 8.9717206e+00 |
+| 2.7029539e-02 | 1.6097071e+00 |
+| 2.8675203e+00 | 1.4140329e+01 |
+| 2.6030689e-01 | 3.9944650e+00 |
+| 1.6953830e+00 | 1.2292687e+01 |
+| 3.2195184e+00 | 1.3296842e+01 |
+| 1.1798449e-01 | 2.7942758e+00 |
+| 2.1030732e+00 | 1.3165072e+01 |
+| 3.1493441e+00 | 1.6567816e+01 |
+| 3.2475034e+00 | 1.6648354e+01 |
+| 1.3658297e+00 | 1.0988057e+01 |
+| 1.5986934e+00 | 1.0889961e+01 |
+| 3.4493268e+00 | 1.8209443e+01 |
+| 8.5425227e-03 | 2.2775920e+00 |
+| 6.7585068e-01 | 9.1419999e+00 |
+| 1.5345147e+00 | 1.1422151e+01 |
+| 2.3998049e+00 | 1.1915797e+01 |
+| 5.2187583e-01 | 7.1733038e+00 |
+| 1.3868138e-01 | 3.1359945e+00 |
+| 2.8076295e+00 | 1.4299533e+01 |
+| 2.1267568e+00 | 9.8042369e+00 |
+| 2.9937503e+00 | 1.4940644e+01 |
+| 6.0825958e-01 | 7.2362913e+00 |
+| 2.7257011e-01 | 5.4156210e+00 |
+| 1.9525441e+00 | 1.1138174e+01 |
+| 2.1377665e+00 | 1.3405720e+01 |
+:::
+
+::: {.callout-note title="Testing Set" collapse="true" icon="false"}
+| X             | Y             |
+| ------------- | ------------- |
+| 2.3114047e+00 | 1.2759413e+01 |
+| 2.6561232e+00 | 1.2932647e+01 |
+| 1.7697643e+00 | 1.2440984e+01 |
+| 5.5082798e-01 | 8.4365770e+00 |
+| 8.1445064e-01 | 6.6693487e+00 |
+| 8.7971425e-01 | 1.1014746e+01 |
+| 3.1300948e+00 | 1.6114484e+01 |
+| 2.8314420e+00 | 1.3520417e+01 |
+| 2.0959708e+00 | 1.0853339e+01 |
+| 3.9161472e+00 | 2.7639382e+01 |
+| 1.0678487e+00 | 9.7770559e+00 |
+| 2.9134610e+00 | 1.3137343e+01 |
+| 1.4881792e+00 | 1.1732934e+01 |
+| 1.9346990e+00 | 1.2599440e+01 |
+| 3.1029632e+00 | 1.4806041e+01 |
+| 3.7949112e+00 | 2.5947658e+01 |
+| 2.6665423e+00 | 1.1790299e+01 |
+| 2.9375816e+00 | 1.3475470e+01 |
+| 2.5834993e+00 | 1.3853263e+01 |
+| 7.6000092e-02 | 5.2524787e+00 |
+:::
+
+The data is available in the source repository as `xtr.dat` and `ytr.dat` for the training data, and `xte.dat` and `yte.dat` for the testing data, in the following directory:
 ```{r}
-# setup libraries
-library(ggplot2)
-
-# read in first dataset into dataframe
-x_tr <- read.delim(
-    file = "../data/train-test/xtr.dat",
-    col.names = "x_tr",
-    colClasses = c("numeric")
-)
-y_tr <- read.delim(
-    file = "../data/train-test/ytr.dat",
-    col.names = "y_tr",
-    colClasses = c("numeric")
-)
-
-df_tr <- data.frame(x_tr, y_tr)
-
-# read in second dataset into dataframe
-x_te <- read.delim(
-    file = "../data/train-test/xte.dat",
-    col.names = "x_te",
-    colClasses = c("numeric")
-)
-y_te <- read.delim(
-    file = "../data/train-test/yte.dat",
-    col.names = "y_te",
-    colClasses = c("numeric")
-)
-
-df_te <- data.frame(x_te, y_te)
-
-# plot training dataset
-plt_tr <- ggplot(
-    data = df_tr,
-    mapping = aes(x = x_tr, y = y_tr)
-) +
-    geom_point() +
-    xlim(0, 4) +
-    ylim(0, 30) +
-    ggtitle("Training data") +
-    theme_light()
-
-plt_tr
-
-# plot test dataset
-plt_te <- ggplot(
-    data = df_te,
-    mapping = aes(x = x_te, y = y_te)
-) +
-    geom_point() +
-    xlim(0, 4) +
-    ylim(0, 30) +
-    ggtitle("Testing data") +
-    theme_light()
-
-plt_te
+DATA_DIR <- "../data/train-test/"
 ```
 
-B
+The file extensions (`.dat`) are arbitrary, but the files are space-delimited. The delimiter shouldn't actually matter since the data only contains one column per file, but alternatively the dat file could include both x and y values in the same file, in which case the delimiter would be important.
+
+To load the data into R, you can use the following code:
+```{r}
+# Read in the training dataset file
+x_tr <- read.delim(                         # <1>
+    file = file.path(DATA_DIR, "xtr.dat"),  # <2>
+    col.names = "x_tr",                     # <3>
+    colClasses = c("numeric")               # <4>
+)                                           # <1>
+y_tr <- read.delim(                         # <5>
+    file = file.path(DATA_DIR, "ytr.dat"),  # <5>
+    col.names = "y_tr",                     # <5>
+    colClasses = c("numeric")               # <5>
+)                                           # <5>
+# Store the training data into a dataframe
+df_tr <- data.frame(x_tr, y_tr)             # <6>
+
+# Read in the testing dataset file
+x_te <- read.delim(                         # <7>
+    file = file.path(DATA_DIR, "xte.dat"),  # <7>
+    col.names = "x_te",                     # <7>
+    colClasses = c("numeric")               # <7>
+)                                           # <7>
+y_te <- read.delim(                         # <8>
+    file = file.path(DATA_DIR, "yte.dat"),  # <8>
+    col.names = "y_te",                     # <8>
+    colClasses = c("numeric")               # <8>
+)
+# Store the testing data into a dataframe
+df_te <- data.frame(x_te, y_te)             # <9>
+
+```
+1. Read in the training data x-values and store the data into variable `x_tr`.
+2. Parameter `file` specifies the path to the file. I'm using the `file.path` function to join the directory path with the file name, giving me the full path to my file.
+3. Parameter `col.names` specifies the name of the column. If I didn't specify this, the column would be named the default, which would end up being something based on the first line of the file, but since we don't have a header this wouldn't be very descriptive.
+4. Parameter `colClasses` specifies the type of the column. This is optional as R should be able to infer the type, but I'm specifying it here to be explicit.
+5. Repeat steps 1-4 for the training data y-values file.
+6. Store the training data into a dataframe, mapping x values to y values.
+7. Repeat steps 1-4 for the testing data x-values file.
+8. Repeat steps 1-4 for the testing data y-values file.
+9. Store the testing data into a dataframe, mapping x values to y values.
+
+Here is what the dataframes look like now (from the first few rows):
+```{r}
+head(df_tr)
+head(df_te)
+```
+Each row is a data point, and the columns represent the x and y coordinates. In case you haven't picked up on it yet, `tr` will be a suffix referring to the **tr**aining data, and `te` will be a suffix referring to the **te**sting data.
+
+```{r}
+#| fig-cap: "Training and testing datapoints plotted."
+
+# Setup libraries
+library(ggplot2)                        # <1>
+library(patchwork)                      # <1>
+
+# Plot training dataset
+plt_tr <- ggplot(                       # <2>
+    data = df_tr,                       # <3>
+    mapping = aes(x = x_tr, y = y_tr)   # <4>
+) +                                     # <2>
+    geom_point() +                      # <5>
+    xlim(0, 4) +                        # <6>
+    ylim(0, 30) +                       # <6>
+    ggtitle("Training") +               # <7>
+    theme_light()                       # <8>
+
+# Plot test dataset
+plt_te <- ggplot(                       # <9>
+    data = df_te,                       # <9>
+    mapping = aes(x = x_te, y = y_te)   # <9>
+) +                                     # <9>
+    geom_point() +                      # <9>
+    xlim(0, 4) +                        # <9>
+    ylim(0, 30) +                       # <9>
+    ggtitle("Testing") +                # <9>
+    theme_light()                       # <9>
+
+plt_tr + plt_te                         # <10>
+```
+1. Load the `ggplot2` and `patchwork` libraries. We'll be using these to produce plots and display them.
+2. Create a ggplot object for the training data.
+3. Parameter `data` specifies the dataframe to use for the plot. We're using the training data dataframe.
+4. Parameter `mapping` specifies the mapping of the dataframe columns to the plot axes, i.e. what our x variable and y variable are in terms of column names. These go in the aes function, for specifying aesthetics of the plot.
+5. Specify the plot type; `geom_point` is a basic scatter plot, ideal for plotting individual data points. Using `geom_scatter` could also work here.
+6. Set the x and y axis limits. This is optional, but I'm specifying them to manually the plots limits rather than auto-detecting.
+7. Set the plot title.
+8. Set the plot theme.
+9. Repeat steps 2-8 identically, but this time for the testing data.
+10. Combine (and show) the two plots into a single plot.
+
+We can see that the data follows some sort of trend, but not one we can clearly identify yet. We'll try to fit a linear regression line to the data to see if we can get a better idea of what the trend is.
+
+# Linear Regression
+
+The intiutive start to investigating the regression fit of the data would be to start with the first order, or linear, regression. This is a simple model that assumes the relationship between x and y is linear.
+
+## Linear Regression Formula
+Add a column vector of 1’s to the features, then use the linear regression formula to obtain a 2-dimensional weight vector. Plot both the linear regression line and the training data on the same graph. Also report the average error on the training set using Eq. (1).
 ```{r}
 # convert training outputs to matrix
 y_tr_mat <- as.matrix(y_tr)
@@ -85,8 +209,12 @@ plt_tr_1 <- ggplot(data = df_tr, mapping = aes(x = x_tr, y = y_tr)) +
     xlim(0, 4) +
     ylim(0, 30) +
     theme_light()
-plt_tr_1
 
+plt_tr_1
+```
+
+## Average Error
+```{r}
 # compute average training error
 eq_tr_1 <- t(as.data.frame(t(w) %*% t(x_tr_1)))
 errors_tr_1 <- (eq_tr_1 - y_tr_mat)**2
@@ -95,7 +223,7 @@ err_avg_tr_1
 ```
 The average error of the training set using the linear regression model is 2.287073.
 
-C
+Plot both the regression line and the test data on the same graph. Also report the average error on the test set using Eq. (1).
 ```{r}
 # convert training outputs to matrix
 y_te_mat <- as.matrix(y_te)
@@ -105,7 +233,10 @@ x_te_1 <- cbind(x_te, b = rep(1, length(x_te)))
 x_te_1 <- as.matrix(x_te_1)
 
 # plot linear regression on test set
-plt_te_1 <- ggplot(data = df_te, mapping = aes(x = x_te, y = y_te)) +
+plt_te_1 <- ggplot(
+    data = df_te,
+    mapping = aes(x = x_te, y = y_te)
+) +
     geom_point() +
     stat_function(fun = function(x) {
         w[1] * x + w[2]
@@ -131,7 +262,11 @@ errs <- data.frame(
 ```
 The average error of the testing set using the linear regression model is 9.427358.
 
-D
+# Polynomial Regression
+
+## Second Order Polynomial
+
+Implement the 2nd-order polynomial regression by adding new features x2 to the inputs. Repeat (b) and (c). Compare the training error and test error. Is it a better fit than linear regression?
 ```{r}
 # add second order polynomial to features
 x_tr_2 <- as.matrix(x_tr_1[, 1]**2)
@@ -184,8 +319,9 @@ errs
 ```
 Comparing the training error and test error, this second order polynomial regression model performs worse than the linear model, with a better training fit but a worse testing fit. Thus, the linear regression model is a better fit.
 
+## Third Order Polynomial
 
-E
+Implement the 3rd-order polynomial regression by adding new features x2,x3 to the inputs. Repeat (b) and (c). Compare the training error and test error. Is it a better fit than linear regression and 2nd-order polynomial regression?
 ```{r}
 # add third order polynomial to features
 x_tr_3 <- as.matrix(x_tr_1[, 1]**3)
@@ -238,7 +374,8 @@ errs
 ```
 This time, the training error has improved much more than with the second order model. In addition, the testing error has also dramatically improved, even better than our original best linear regression model. Overall, this third order polynomial regression is a better fit than both the linear and second order models.
 
-F
+## Fourth Order Polynomial
+Implement the 4th-order polynomial regression by adding new features x2,x3,x4 to the inputs. Repeat (b) and (c). Compare the training error and test error. Compared with the previous results, which order is the best for fitting the data?
 ```{r}
 # add fourth order polynomial to features
 x_tr_4 <- as.matrix(x_tr_1[, 1]**4)
@@ -295,7 +432,7 @@ Using fourth order polynomial regression, our training error has slightly improv
 
 # Regularization and Cross-Validation
 
-A
+Using the training data to implement l2-regularized for the 4th-order polynomial regres- sion (page 12 of Lecture 4, note that we do not penalize the bias term w0), vary the regularization parameter λ ∈ {0.01, 0.05, 0.1, 0.5, 1, 100, 106 }. Plot the training and test error (averaged over all instances) using Eq. (1) as a function of λ (you should use a log10 scale for λ). Which λ is the best for fitting the training data? Which λ is the best for fitting the test data?
 ```{r}
 # create identity matrix with 0 at position (1, 1)
 i_hat <- diag(nrow(w4))
@@ -351,7 +488,7 @@ plt_reg
 ```
 The smallest lambda value, 0.01, seems to minimize the l2-normalized loss for both the training and testing data with the minimized lambda value. At smaller lambda values, the testing error is greater than the training data, but as they get larger this difference is less visible.
 
-B
+Plot the value of each weight parameter (including the bias term w0) as a function of λ.
 ```{r}
 # function of training weight in terms of lambda
 l2_w_tr <- function(lambda) {
@@ -463,6 +600,7 @@ plt_w_te
 Note: Data is plotted as discrete based on specifed lambda values.
 
 C
+Write a procedure that performs five-fold cross-validation on your training data (page 7 of Lecture 4). Use it to determine the best value for λ. Show the average error on the validation set as a function of λ. Is the same as the best λ in (a)? For the best fit, plot the test data and the l2-regularized 4th-order polynomial regression line obtained.
 ```{r}
 # store training data into single dataframe
 train <- data.frame(x_tr_4, y_tr_mat)
@@ -525,46 +663,3 @@ plt_te_4 <- ggplot(data = df_te, mapping = aes(x = x_te, y = y_te)) +
 plt_te_4
 ```
 The best fit 4th order polynomial regression plot.
-
-# Addition
-Response to Question 1d, in Refreshing Mathematics
-```{r}
-library(rgl)
-
-# Define A and B matrices
-A <- matrix(
-    c(
-        2, -2,
-        -2, 3
-    ),
-    nrow = 2
-)
-B <- matrix(
-    c(
-        2, -1,
-        -1, 2
-    ),
-    nrow = 2
-)
-
-# Define the function to plot
-f <- function(w) {
-    # Evaluate the function at each (x, y) point
-    return(sum(diag(B %*% w %*% t(w) %*% A)))
-}
-
-# Generate a grid of (x, y) points
-x <- seq(-1, 1, length.out = 50)
-y <- seq(-1, 1, length.out = 50)
-
-# Create a grid of (x, y) points
-grid <- expand.grid(x, y)
-
-# Evaluate the function at each (x, y) point
-z <- apply(grid, 1, function(w) f(as.matrix(w)))
-
-# Create the 3D plot
-z <- matrix(z, nrow = length(x), ncol = length(y), byrow = TRUE)
-persp3d(x, y, z, col = heat.colors(1000))
-
-```
