@@ -2,7 +2,7 @@
 title: "Eigenfaces"
 ---
 
-# 3 PCA and Eigenface
+# PCA and Eigenface
 
 ## Initial setup and utility functions
 ```{r setup}
