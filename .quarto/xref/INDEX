@@ -31,5 +31,8 @@
   },
   "404.qmd": {
     "404.html": "89d1bccb"
+  },
+  "pages/regression.qmd": {
+    "regression.html": "eacb8350"
   }
 }

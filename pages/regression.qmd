@@ -1,12 +1,36 @@
 ---
-title: "Regression"
+title: "Simple Regression"
 code-annotations: hover
 engine: knitr
 ---
 
+:::{.callout-important title="Important"}
+This page is currently under construction, and being slowly updated with better explanations and formatting.
+:::
+
 # Overview
 
 In this exercise, I will be implementing linear and polynomial regression in R using a pre-made training and testing data set. I try to make this exercise as simple as possible, so I will not be going into the mathematical details of linear and polynomial regression. I will also provide explanations for as many lines of code as possible, so that you can follow along with the code and understand what is going on.
+
+## Background
+
+In supervised learning, our input variables, also called *features*, are used in order to predict an output variable, also called a *label*. There are different types of output variables that we may be interested in, which would fall under the category of *regression* or *classification*. In regression problems, we are interested in predicting a continuous output variable, whereas in classification problems, we are interested in predicting a discrete output variable. In this exercise, we will be working with a regression problem, where we are interested in predicting a continuous output variable.
+
+:::{.callout-note title="Output variable examples" collapse="true"}
+In a **classification** problem, we might input features based on tumour width and height, and predict whether or not the tumour is malignant or benign. The output variable in this case would be a discrete variable, either 0 or 1, where 0 represents benign and 1 represents malignant.
+
+In a **regression** problem, we might input features based on gene expression levels of several other genes, and predict the gene expression level of a specific gene of interest. The output variable in this case would be a continuous variable, where the gene expression level is represented by a floating point number.
+
+In each of these types of problems, the input variables can be anything (continuous or discrete), but the type of output variable will determine whether or not the problem is a regression or classification problem.
+:::
+
+:::{.callout-tip title="Other supervised learning problems" collapse="true"}
+While classification and regression are the most commonly seen supervised learning problems, other supervised learning problems include:
+
+- **Ranking**: Predicting the order of a set of items.
+- **Sequence labeling**: Assigning a label to each element in a sequence of inputs.
+- **Structured prediction**: Predicting a structured output, such as a sequence, tree, or graph.
+:::
 
 # Loading data
 
@@ -137,7 +161,13 @@ Here is what the dataframes look like now (from the first few rows):
 head(df_tr)
 head(df_te)
 ```
-Each row is a data point, and the columns represent the x and y coordinates. In case you haven't picked up on it yet, `tr` will be a suffix referring to the **tr**aining data, and `te` will be a suffix referring to the **te**sting data.
+Each row is a training example (or instance), and the columns represent the x and y coordinates, or features and labels.
+
+:::{.callout-note appearance="simple"}
+In case you haven't picked up on it yet, `tr` will be a suffix referring to the **tr**aining data, and `te` will be a suffix referring to the **te**sting data.
+:::
+
+Now that we have the data loaded into R, we can plot it to see what it looks like:
 
 ```{r}
 #| fig-cap: "Training and testing datapoints plotted."
@@ -181,27 +211,89 @@ plt_tr + plt_te                         # <10>
 9. Repeat steps 2-8 identically, but this time for the testing data.
 10. Combine (and show) the two plots into a single plot.
 
-We can see that the data follows some sort of trend, but not one we can clearly identify yet. We'll try to fit a linear regression line to the data to see if we can get a better idea of what the trend is.
+We can see that the data follows some sort of trend, but not one we can clearly identify yet. We'll start by trying to fit a linear regression line to the data to see if we can get a better idea of what the trend is.
 
 # Linear Regression
 
-The intiutive start to investigating the regression fit of the data would be to start with the first order, or linear, regression. This is a simple model that assumes the relationship between x and y is linear.
+The intiutive start to investigating the regression fit of the data would be to start with the first order, or linear, regression. This is a simple model that assumes the relationship between x and y is linear. We will continue to use our variables $x$ and $y$ to represent the input and output of our model, respectively.
 
-## Linear Regression Formula
-Add a column vector of 1’s to the features, then use the linear regression formula to obtain a 2-dimensional weight vector. Plot both the linear regression line and the training data on the same graph. Also report the average error on the training set using Eq. (1).
+When formulating our problem function, we want to find a function $h$ such that $h(x) \approx y$. For every input $x$, we want the output $h(x)$ to be as close to the actual output $y$ as possible. The $h$ stands for *hypothesis*, and is in terms of $x$. The dimensions of x corresponds to how many features we have, and the dimension of y corresponds to how many labels we have. In this example, both dimensions are 1, since we only have one feature and one label.
+
+Consider the following model:
+$$h_w(x) = w^\top x + b$$
+
+where $w$ is a vector of *weights* of size $n$ where $n$ is equvialent to the length of vector $x$; and $b$ is a *bias* term, a vector on constants the same dimension as $x$. The bias term is a constant value that is added to the output of the model, the same concept you know from a basic linear function $y = mx + b$. The weights are multiplied by the input features, and then added to the bias term to get the output of the model.
+
+Since having the bias term adds a level of complexity to the formula, we can adjust the weights to include the bias term by adding a column of 1’s to the input features, which would have the same effect. The simplified notation would then be:
+
+$$h_w(x) = w^\top x$$
+
+where $w$ is a weight vector that includes the bias term, i.e. both $w$ and $x$ are now of size $n+1$. That extra column included in $w$ is a column of 1’s, and the extra column included in $x$ is the vector $b$. In essence, we hide the existence of the bias term inside the weights vector; one less variable for us to worry about.
+
+The above formula would be equivalent to the following:
+$$
+h_w(x) =
+\begin{bmatrix}
+    w_1 \\
+    w_2 \\
+    ... \\
+    w_n
+\end{bmatrix}
+\cdot
+\begin{bmatrix}
+    x_1 & x_2 & ... & x_n
+\end{bmatrix}
+$$
+
+## Model Solving
+We'll work with the training data only for now, as once we have a weights vector and a completed model, we can then use the testing data to evaluate the model. To relate our data to the linear regression model, we first have to add the column vector of 1’s to the features to account for the bias term. 
 ```{r}
-# convert training outputs to matrix
-y_tr_mat <- as.matrix(y_tr)
+# Add column of 1's to training features
+x_tr_1 <- cbind(                # <1>
+    x_tr,                       # <2>
+    b = rep(1, length(x_tr))    # <3>
+)                               # <1>
+```
+1. Create a new variable, `x_tr_1`, that is the result of the `cbind` function. This function takes vectors (or dataframes) and combines them by their columns, hence the name `cbind` for *column bind*. We will want to combine our original features with a column of 1's of the same length. 
+2. Specify our first vector to combine, `x_tr`. This is the original training features vector.
+3. The second vector to combine will be a column containing just ones of the same length as our orignal vector. We can create this column of 1's on the fly (instead of manually) by using the `rep` function. The `rep` function takes a value and repeats it a specified number of times. In this case, we want to repeat the value 1, `length(x_tr)` times. The `length` function returns the length of a vector, in this case the number of elements in `x_tr`.
 
-# add column of 1s to training features
-x_tr_1 <- cbind(x_tr, b = rep(1, length(x_tr)))
-x_tr_1 <- as.matrix(x_tr_1)
+Now `x_tr_1` looks like this:
+```{r}
+head(x_tr_1)
+```
 
-# solve for weight vector using training features
-w <- solve(t(x_tr_1) %*% x_tr_1) %*% (t(x_tr_1) %*% y_tr_mat)
+:::{.callout-note appearance="simple"}
+Like with our `_tr` suffix, I use the `_1` suffix to represent variables for linear regression. Later on I'll be using other regression models such as `_2` for second-order polynomial regression, `_3` for third-order, etc.
+:::
 
-# plot linear regression on training set
-plt_tr_1 <- ggplot(data = df_tr, mapping = aes(x = x_tr, y = y_tr)) +
+Now that we have our training features with the bias term included, we can use the training labels to solve for the weights vector by rearranging the linear regression formula. Using matrix algebra, we derive the formula for solving for the weights vector:
+
+$$w = (X^\top X)^{-1} X^\top y$$
+
+where $X$ is the matrix form of training features, $y$ is the vector of training labels, and $w$ is the vector of weights. The $X^\top$ notation is the transpose of $X$, and the $X^{-1}$ notation is the inverse of $X$. The inverse of a matrix is a matrix that when multiplied by the original matrix, results in the identity matrix. The identity matrix is a square matrix with 1’s on the diagonal and 0’s everywhere else. The identity matrix is the multiplicative identity, meaning that when multiplied by any matrix, the result is the original matrix. The inverse of a matrix is the multiplicative inverse, meaning that when multiplied by the original matrix, the result is the identity matrix.
+
+Matrix operations are available in base R, including `%*%` for matrix multiplication, `t` for transposing a matrix, and `solve` for solving a matrix equation. When `solve` is only provided one parameter, it solves for the inverse of the input matrix. We can use these functions to solve for the weights vector.
+
+```{r}
+# Convert training dataframes to matrices
+y_tr_mat <- as.matrix(y_tr)     # <1>
+x_tr_1 <- as.matrix(x_tr_1)     # <1>
+
+# Solve for weight vector using training data
+w <- solve(t(x_tr_1) %*% x_tr_1) %*% (t(x_tr_1) %*% y_tr_mat)   # <2>
+```
+1. To perform matrix operations on our dataframes, we need to first convert them to matrices. We can do this using the `as.matrix` function. I rename `y_tr` to `y_tr_mat` to store its matrix variable separately, since it will be reused later on in the code.
+2. Solve for `w` using the formula above, with `x_tr_1` as X and `y_tr_mat` as y. We use the `%*%` operator for matrix multiplication, the `solve` function to solve for the inverse of a matrix, and the `t` function to transpose a matrix. The brackets are there to visually support the order of operations.
+
+Now that we have our weights vector $w$, the full linear regression formula is complete and we can plot the resulting function on top of our training data.
+
+```{r}
+# Plot linear regression on training set
+plt_tr_1 <- ggplot(
+    data = df_tr,
+    mapping = aes(x = x_tr, y = y_tr)
+) +
     geom_point() +
     stat_function(fun = function(x) {
         w[1] * x + w[2]

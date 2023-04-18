@@ -21,14 +21,19 @@ website:
     contents:
       - index.qmd
       - pages/about.qmd
+      - section: "Basics (WIP)"
+        contents:
+          - Linear Algebra
+          - ggplot2
       - section: "AI Projects in R"
         contents:
-          - pages/linreg.qmd
-          - pages/faces.qmd
-          - pages/filters.qmd
-      - section: "RNA-Seq Analysis"
+          - pages/regression.qmd
+          - Eigenfaces (WIP)
+          - Edge Detection (WIP)
+      - section: "RNA-Seq Analysis (WIP)"
         contents:
-          - setup.qmd
+          - Preprocessing and Alignment
+          - Analysis
   page-footer: "Michael Tran" 
 
 format:
