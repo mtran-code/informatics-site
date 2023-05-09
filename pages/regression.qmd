@@ -200,7 +200,7 @@ plt_te <- ggplot(                       # <9>
 
 plt_tr + plt_te                         # <10>
 ```
-1. Load the `ggplot2` and `patchwork` libraries. We'll be using these to produce plots and display them.
+1. Load the `ggplot2` and `patchwork` libraries. We'll be using these to produce plots and display them. If they're not found or not installed, you can install them using the standard install command: `install.packages("ggplot2")` (and again for `patchwork`).
 2. Create a ggplot object for the training data.
 3. Parameter `data` specifies the dataframe to use for the plot. We're using the training data dataframe.
 4. Parameter `mapping` specifies the mapping of the dataframe columns to the plot axes, i.e. what our x variable and y variable are in terms of column names. These go in the aes function, for specifying aesthetics of the plot.
@@ -256,7 +256,7 @@ x_tr_1 <- cbind(                # <1>
 ```
 1. Create a new variable, `x_tr_1`, that is the result of the `cbind` function. This function takes vectors (or dataframes) and combines them by their columns, hence the name `cbind` for *column bind*. We will want to combine our original features with a column of 1's of the same length. 
 2. Specify our first vector to combine, `x_tr`. This is the original training features vector.
-3. The second vector to combine will be a column containing just ones of the same length as our orignal vector. We can create this column of 1's on the fly (instead of manually) by using the `rep` function. The `rep` function takes a value and repeats it a specified number of times. In this case, we want to repeat the value 1, `length(x_tr)` times. The `length` function returns the length of a vector, in this case the number of elements in `x_tr`.
+3. The second vector to combine will be a column containing just ones of the same length as our orignal vector. We start with `b =` to name our column consistently with the formula. We can create this column of 1's on the fly (instead of manually) by using the `rep` function. The `rep` function takes a value and repeats it a specified number of times. In this case, we want to repeat the value 1, `length(x_tr)` times. The `length` function returns the length of a vector, in this case the number of elements in `x_tr`.
 
 Now `x_tr_1` looks like this:
 ```{r}
@@ -290,20 +290,28 @@ Now that we have our weights vector $w$, the full linear regression formula is c
 
 ```{r}
 # Plot linear regression on training set
-plt_tr_1 <- ggplot(
-    data = df_tr,
-    mapping = aes(x = x_tr, y = y_tr)
-) +
-    geom_point() +
-    stat_function(fun = function(x) {
-        w[1] * x + w[2]
-    }) +
-    xlim(0, 4) +
-    ylim(0, 30) +
-    theme_light()
+plt_tr_1 <- ggplot(                     # <1>
+    data = df_tr,                       # <2>
+    mapping = aes(x = x_tr, y = y_tr)   # <3>
+) +                                     # <1>
+    geom_point() +                      # <4>
+    stat_function(fun = function(x) {   # <5>
+        w[1] * x + w[2]                 # <5>
+    }) +                                # <5>
+    xlim(0, 4) +                        # <6>
+    ylim(0, 30) +                       # <6>
+    theme_light()                       # <7>
 
-plt_tr_1
+plt_tr_1                                # <8>
 ```
+1. Create a ggplot object for the linear regression over the training data.
+2. Parameter `data` specifies the dataframe to use for the plot. We're using the training data dataframe.
+3. Parameter `mapping` specifies the mapping of the dataframe columns to the plot axes, i.e. what our x variable and y variable are in terms of column names. These go in the aes function, for specifying aesthetics of the plot.
+4. Specify the plot type; `geom_point` is a basic scatter plot, ideal for plotting individual data points. Using `geom_scatter` could also work here.
+5. Specify another plot type (alongside `geom_point`). Additional plot types can be added to render on top of the main data (the training data). Here we are plotting a function using `stat_function` by passing in the function as paramter `fun`. The function is created in `y = mx + b` format from our weights vector `w`, so function of x is `w[1] * x + w[2]` where `w[1]` is the slope `m` and `w[2]` is the y-intercept `b`. The function is plotted over the range of the training data, which is why we don't need to specify `x` in the `stat_function` function.
+6. Set the x and y axis limits. This is optional, but I'm specifying them to manually the plots limits rather than auto-detecting.
+7. Set the plot theme.
+8. Display the plot.
 
 ## Average Error
 ```{r}
