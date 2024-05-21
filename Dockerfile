@@ -1,5 +1,5 @@
 # From R latest
-FROM r-base:latest
+FROM r-base:latest as builder
 
 # Install Quarto latest
 RUN curl -sSL https://quarto.org/download/latest/quarto-linux-arm64.deb -o quarto.deb && \
@@ -11,17 +11,12 @@ RUN curl -sSL https://quarto.org/download/latest/quarto-linux-arm64.deb -o quart
 RUN R -r "install.packages('remotes', repos = c(CRAN = 'https://cloud.r-project.org'))"
 RUN R -e "remotes::install_github('rstudio/renv@*release')"
 
-WORKDIR /project
 COPY renv.lock renv.lock
 ENV RENV_PATHS_LIBRARY renv/library
 
 RUN R -e 'renv::restore()'
 
-# # Copy the project files into the container
-# COPY . .
+RUN quarto render .
 
-# # Command to render the Quarto project
-# CMD ["quarto", "render"]
-
-# # Expose the port if you are using a server (optional)
-# EXPOSE 8000
+FROM httpd:alpine
+COPY --from=builder docs/ /usr/local/apache2/htdocs/
