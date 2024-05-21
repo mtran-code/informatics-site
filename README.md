@@ -1,7 +1,7 @@
 # informatics-site
 link: https://mtran-code.github.io/informatics-site/
 
-- host interesting informatics projects
+- host interesting (bio)informatics projects
 - experiment and learn quarto
 
 ## todo

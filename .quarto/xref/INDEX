@@ -34,5 +34,8 @@
   },
   "pages/regression.qmd": {
     "regression.html": "eacb8350"
+  },
+  "pages/ai/regression.qmd": {
+    "regression.html": "1e004afa"
   }
 }

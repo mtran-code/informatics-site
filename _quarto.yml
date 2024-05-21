@@ -1,9 +1,13 @@
 project:
   type: website
   output-dir: docs
+  render: 
+    - index.qmd
+    - pages/about.qmd
+    - pages/ai/regression.qmd
 
 website:
-  title: "Website for Informatics Projects"
+  title: "Projects in R"
   navbar:
     background: primary
     search: true
@@ -25,9 +29,10 @@ website:
         contents:
           - Linear Algebra
           - ggplot2
+          - Docker, renv, pak
       - section: "AI Projects in R"
         contents:
-          - pages/regression.qmd
+          - pages/ai/regression.qmd
           - Eigenfaces (WIP)
           - Edge Detection (WIP)
       - section: "RNA-Seq Analysis (WIP)"
