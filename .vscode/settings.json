@@ -1,0 +1,6 @@
+{
+    "terminal.integrated.env.osx": {
+        "CONDA_DEFAULT_ENV": "r_env",
+        "PATH": "/Users/michael/.micromamba/envs/r_env/bin:${env:PATH}"
+    }
+}
